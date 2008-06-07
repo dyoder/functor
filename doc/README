@@ -1,0 +1,36 @@
+Functor provides pattern-based function and method dispatch for Ruby. To use it in a class:
+
+  class Repeater
+    attr_accessor :times
+    include Functor::Method
+    functor( :repeat, Integer ) { |x| x * @times }
+    functor( :repeat, String ) { |s| [].fill( s, 0..@times ).join(' ') }
+  end
+
+  r = Repeater.new
+  r.times = 5
+  r.repeat( 5 )   # => 25
+  r.repeat( "-" ) # => "- - - - -"
+  r.repeat( 7.3 ) # => RuntimeError!
+
+Warning: This defines a class instance variable @functors behind the scenes as a side-effect. Also, functors won't inherit properly at this point.
+
+You can also define Functor objects directly:
+
+  fib ||= Functor.new do
+    given( 0 ) { 0 }
+    given( 1 ) { 1 }
+    given( Integer ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
+  end
+  
+You can use functors directly with functions taking a block like this:
+
+  [ *0..10 ].map( &fib )  # => [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+  
+You can explicitly bind self using #bind:
+
+  fun.bind( obj )
+  
+which is actually how the method dispatch is implemented.
+
+Arguments are matched first using === and then ==, so anything that supports these methods can be matched against.
