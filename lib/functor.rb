@@ -2,13 +2,19 @@ require 'lib/object'
 class Functor
   
   module Method
-    
     def self.included( k )
-      k.module_eval { @functors = {} }
       def k.functor( name, *args, &block )
+        @functors ||= {}
         unless @functors[name]
           @functors[name] = Functor.new
-          eval("def #{name}( *args, &block ) ; self.class.module_eval { @functors[ :#{name} ] }.bind( self ).call( *args, &block ) ; end" )
+          eval <<-CODE
+            def #{name}( *args, &block ) 
+              functors = self.class.module_eval { @functors[ :#{name} ] }
+              functors.bind( self ).call( *args, &block ) 
+            rescue ArgumentError => e
+              super # rescue raise e
+            end
+          CODE
         end
         @functors[name].given( *args, &block )
       end
@@ -24,7 +30,7 @@ class Functor
   def call( *args, &block )
     args.push( block ) if block_given?
     pattern, action = @patterns.find { |pattern, action| match?( args, pattern ) }
-    raise "argument mismatch for argument(s): #{args.inspect}." unless action
+    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) unless action
     @object ? @object.instance_exec( *args, &action ) : action.call( *args )
   end
   
