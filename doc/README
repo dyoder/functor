@@ -17,7 +17,7 @@ Warning: This defines a class instance variable @functors behind the scenes as a
 
 You can also define Functor objects directly:
 
-  fib ||= Functor.new do
+  fib = Functor.new do
     given( 0 ) { 0 }
     given( 1 ) { 1 }
     given( Integer ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
