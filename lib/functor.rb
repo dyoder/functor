@@ -4,19 +4,25 @@ class Functor
   module Method
     def self.included( k )
       def k.functor( name, *args, &block )
-        @functors ||= {}
-        unless @functors[name]
-          @functors[name] = Functor.new
+        functors = module_eval { @__functors ||= {} }
+        unless functors[ name ]
+          functors[ name ] = Functor.new
           eval <<-CODE
             def #{name}( *args, &block ) 
-              functors = self.class.module_eval { @functors[ :#{name} ] }
-              functors.bind( self ).call( *args, &block ) 
-            rescue ArgumentError => e
-              super # rescue raise e
+              begin
+                functors = self.class.module_eval { @__functors }
+                functors[ :#{name} ].bind( self ).call( *args, &block ) 
+              rescue ArgumentError => e
+                begin
+                  super
+                rescue NoMethodError => f
+                  raise e
+                end
+              end
             end
           CODE
         end
-        @functors[name].given( *args, &block )
+       functors[ name ].given( *args, &block )
       end
     end
   end

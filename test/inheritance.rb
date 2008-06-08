@@ -7,7 +7,6 @@ class A
 end
 
 class B < A
-  include Functor::Method
   functor( :test, String ) { |s| "B: String" }
 end
 
