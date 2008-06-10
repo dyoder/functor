@@ -1,4 +1,4 @@
-require 'test/helpers'
+require "#{File.dirname(__FILE__)}/helpers"
 
 class Repeater
   attr_accessor :times
