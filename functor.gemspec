@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://dev.zeraweb.com/}
   s.require_paths = ["lib"]
   s.required_ruby_version = Gem::Requirement.new(">= 1.8.6")
-  s.rubyforge_project = %q{funkytor}
+  s.rubyforge_project = %q{functor}
   s.rubygems_version = %q{1.0.1}
   s.summary = %q{Pattern-based dispatch for Ruby, inspired by Topher Cyll's multi.}
 end
