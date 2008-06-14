@@ -1,13 +1,13 @@
-require 'test/helpers'
+require "#{File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
-  functor( :test, Integer ) { |x| :a1 }
-  functor( :test, String ) { |s| :a2 }
+  functor( :smurf, Integer ) { |x| "A: Integer" }
+  functor( :smurf, String ) { |s| "A: String" }
 end
 
 class B < A
-  functor( :test, String ) { |s| :b2 }
+  functor( :smurf, String ) { |s| "B: String" }
 end
 
 describe "Functor methods should support inheritance" do
@@ -15,13 +15,13 @@ describe "Functor methods should support inheritance" do
   before do
     @b = B.new
   end
-  
+    
   specify "by inheriting base class implementations" do
-    @b.test( 5 ).should == :a1
+    @b.smurf( 5 ).should == "A: Integer"
   end
   
   specify "by allowing derived classes to override an implementation" do
-    @b.test( "foo" ).should == :b2
+    @b.smurf( "foo" ).should == "B: String"
   end
   
 end

@@ -1,4 +1,4 @@
-require 'test/helpers'
+require "#{File.dirname(__FILE__)}/helpers"
 
 fib ||= Functor.new do
   given( 0 ) { 0 }

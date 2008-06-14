@@ -1,17 +1,19 @@
 require 'lib/object'
-require 'lib/proc'
+
 class Functor
   
   module Method
+    
     def self.included( k )
       def k.functor( name, *args, &block )
         functors = module_eval { @__functors ||= {} }
         unless functors[ name ]
           functors[ name ] = Functor.new
-          eval <<-CODE
+          klass = self.name
+          module_eval <<-CODE
             def #{name}( *args, &block ) 
               begin
-                functors = self.class.module_eval { @__functors }
+                functors = #{klass}.module_eval { @__functors }
                 functors[ :#{name} ].bind( self ).call( *args, &block ) 
               rescue ArgumentError => e
                 begin
@@ -28,7 +30,7 @@ class Functor
     end
   end
   
-  def initialize( &block ) ; @patterns = []; instance_eval(&block) if block_given? ; end
+  def initialize( &block ) ; @patterns = []; instance_eval( &block ) if block_given? ; end
   
   def given( *pattern, &block ) ; @patterns.push [ pattern, block ] ; self ; end
   

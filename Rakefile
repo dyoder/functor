@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.required_ruby_version = '>= 1.8.6'
   s.name = "functor"
-  # s.rubyforge_project = 'autocode'
+  s.rubyforge_project = 'functor'
   s.version = "0.2"
   s.authors = ["Dan Yoder"]
   s.email = 'dan@zeraweb.com'

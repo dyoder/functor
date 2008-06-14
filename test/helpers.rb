@@ -1,5 +1,5 @@
 require 'rubygems'
-%w{ bacon  }.each { |dep| require dep }
+%w{ bacon }.each { |dep| require dep }
 Bacon.summary_on_exit
 
 module Kernel
@@ -11,4 +11,5 @@ Bacon::Context.instance_eval do
   alias_method :specify, :it
 end
 
-require 'lib/functor'
+$:.unshift "#{File.dirname(__FILE__)}/../lib"
+require "functor"
