@@ -1,8 +1,8 @@
 require 'test/helpers'
 
 stripe ||= Functor.new do
-  given( guard { |x| x % 2 == 0 } ) { 'white' }
-  given( guard { |x| x % 2 == 1 } ) { 'silver' }
+  given( lambda { |x| x % 2 == 0 } ) { 'white' }
+  given( lambda { |x| x % 2 == 1 } ) { 'silver' }
 end
 
 describe "Dipatch should support guards" do

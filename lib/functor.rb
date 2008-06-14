@@ -2,8 +2,13 @@ require 'lib/object'
 
 class Functor
   
+  def self.precedence
+    lambda do |pattern|
+      case pattern ; when Class then 0 ; when Proc then 1 ; when Regexp then 2 ; else 3 ; end
+    end
+  end
+
   module Method
-    
     def self.included( k )
       def k.functor( name, *args, &block )
         functors = module_eval { @__functors ||= {} }
@@ -25,21 +30,22 @@ class Functor
             end
           CODE
         end
-       functors[ name ].given( *args, &block )
+        functors[ name ].given( *args, &block )
       end
     end
   end
   
-  def initialize( &block ) ; @patterns = []; instance_eval( &block ) if block_given? ; end
+  def initialize( &block ) @patterns = {}; instance_eval( &block ) if block_given? ; end
   
-  def given( *pattern, &block ) ; @patterns.push [ pattern, block ] ; self ; end
+  def given( *pattern, &action ) ; @patterns[ pattern ] = action ; end
   
   def bind( object ) ; @object = object ; self ; end
   
   def call( *args, &block )
     args.push( block ) if block_given?
-    pattern, action = @patterns.find { |pattern, action| match?( args, pattern ) }
-    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) unless action
+    candidates = @patterns.keys.select { |pattern| match?( args, pattern ) }
+    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) if candidates.empty?
+    action = @patterns[ candidates.sort( &Functor.precedence ).first ]
     @object ? @object.instance_exec( *args, &action ) : action.call( *args )
   end
   
@@ -50,7 +56,8 @@ class Functor
   private
   
   def match?( args, pattern )
-    pattern.zip(args).all? { |x,y| x === y or x == y } if pattern.length == args.length
+    pattern.zip(args).all? { |x,y| x === y or x == y or 
+        ( x.respond_to?(:call) && x.call( y ) ) } if pattern.length == args.length
   end
   
 end

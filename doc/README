@@ -20,7 +20,7 @@ You can also define Functor objects directly:
   fib = Functor.new do
     given( 0 ) { 0 }
     given( 1 ) { 1 }
-    given( Integer ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
+    given( 2..10000 ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
   end
   
 You can use functors directly with functions taking a block like this:
