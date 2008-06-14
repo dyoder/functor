@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/helpers"
 fib ||= Functor.new do
   given( 0 ) { 0 }
   given( 1 ) { 1 }
-  given( Class.new { def ===(v) ; v > 1 ; end }.new ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
+  given( lambda { |v| v > 1 } ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
 end
 
 describe "Dispatch on a functor object should" do
