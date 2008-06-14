@@ -5,10 +5,12 @@ class A
   functor( :smurf, Integer ) { |x| "A: Integer" }
   functor( :smurf, String ) { |s| "A: String" }
   functor( :smurf, Symbol ) { |s| smurf( "boo" ) }
+  functor( :smurf, Hash ) { |h| "A: Hash" }
 end
 
 class B < A
   functor( :smurf, String ) { |s| "B: String" }
+  functor( :smurf, Hash ) { |h| "#{super} and B: Hash" }
 end
 
 describe "Functor methods should support inheritance" do
@@ -21,5 +23,9 @@ describe "Functor methods should support inheritance" do
     B.new.smurf( "foo" ).should == "B: String"
     A.new.smurf( :foo ).should == "A: String"
     B.new.smurf( :foo ).should == "B: String"
+  end
+  
+  specify "by allowing to call the implementation of an overriden method on super" do
+    B.new.smurf( {} ).should == "A: Hash and B: Hash"
   end
 end
