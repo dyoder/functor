@@ -1,4 +1,5 @@
 require 'lib/object'
+require 'lib/proc'
 class Functor
   
   module Method

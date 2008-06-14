@@ -2,12 +2,12 @@ require 'test/helpers'
 
 class A
   include Functor::Method
-  functor( :test, Integer ) { |x| "A: Integer" }
-  functor( :test, String ) { |s| "A: String" }
+  functor( :test, Integer ) { |x| :a1 }
+  functor( :test, String ) { |s| :a2 }
 end
 
 class B < A
-  functor( :test, String ) { |s| "B: String" }
+  functor( :test, String ) { |s| :b2 }
 end
 
 describe "Functor methods should support inheritance" do
@@ -17,11 +17,11 @@ describe "Functor methods should support inheritance" do
   end
   
   specify "by inheriting base class implementations" do
-    @b.test( 5 ).should == "A: Integer"
+    @b.test( 5 ).should == :a1
   end
   
   specify "by allowing derived classes to override an implementation" do
-    @b.test( "foo" ).should == "B: String"
+    @b.test( "foo" ).should == :b2
   end
   
 end
