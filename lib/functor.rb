@@ -48,7 +48,7 @@ class Functor
   private
   
   def match?( args, pattern )
-    pattern.zip(args).all? { |x,y| x === y or x == y } if pattern.length == args.length
+    pattern.zip(args).all? { |x,y| x === y or x == y or ( x.is_a?( Proc ) && x.call( y ) ) } if pattern.length == args.length
   end
   
 end
