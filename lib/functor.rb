@@ -2,7 +2,6 @@ require 'object'
 class Functor
   
   module Method
-    
     def self.included( k )
       def k.functor( name, *args, &block )
         functors = module_eval { @__functors ||= {} }
@@ -24,14 +23,14 @@ class Functor
             end
           CODE
         end
-       functors[ name ].given( *args, &block )
+        functors[ name ].given( *args, &block )
       end
     end
   end
   
-  def initialize( &block ) ; @patterns = []; instance_eval(&block) if block_given? ; end
+  def initialize( &block ) ; @patterns = {}; instance_eval(&block) if block_given? ; end
   
-  def given( *pattern, &block ) ; @patterns.push [ pattern, block ] ; self ; end
+  def given( *pattern, &block ) ; @patterns[ pattern ] = block ; self ; end
   
   def bind( object ) ; @object = object ; self ; end
   
