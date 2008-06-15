@@ -2,12 +2,6 @@ require 'lib/object'
 
 class Functor
   
-  def self.precedence
-    lambda do |pattern|
-      case pattern ; when Class then 0 ; when Proc then 1 ; when Regexp then 2 ; else 3 ; end
-    end
-  end
-
   module Method
     def self.included( k )
       def k.functor( name, *args, &block )
@@ -35,23 +29,25 @@ class Functor
     end
   end
   
-  def initialize( &block ) @patterns = {}; instance_eval( &block ) if block_given? ; end
+  def initialize( &block ) 
+    @rules = [] ; instance_eval( &block ) if block_given?
+  end
   
-  def given( *pattern, &action ) ; @patterns[ pattern ] = action ; end
+  def given( *pattern, &action )
+    @rules.delete_if { |p,a| p == pattern }
+    @rules << [ pattern, action ]
+  end
   
   def bind( object ) ; @object = object ; self ; end
   
   def call( *args, &block )
     args.push( block ) if block_given?
-    candidates = @patterns.keys.select { |pattern| match?( args, pattern ) }
-    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) if candidates.empty?
-    action = @patterns[ candidates.sort( &Functor.precedence ).first ]
+    pattern, action = @rules.find { | pattern, action | match?( args, pattern ) }
+    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) unless action
     @object ? @object.instance_exec( *args, &action ) : action.call( *args )
   end
   
-  def to_proc
-    lambda { |*args| self.call(*args) }
-  end
+  def to_proc ; lambda { |*args| self.call(*args) } ; end
   
   private
   
