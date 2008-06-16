@@ -1,3 +1,4 @@
 0.1 - Initial implemention of Functor class.
 0.2 - Added method dispatch, to_proc support, tests.
 0.3 - Added support for guards and redefinition.
+0.3.1 - Made thread-safe and added ability to call base class functors.

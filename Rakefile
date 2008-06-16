@@ -14,8 +14,8 @@ spec = Gem::Specification.new do |s|
   s.required_ruby_version = '>= 1.8.6'
   s.name = "functor"
   s.rubyforge_project = 'functor'
-  s.version = "0.3"
-  s.authors = ["Dan Yoder"]
+  s.version = "0.3.1"
+  s.authors = [ "Dan Yoder", "Matthew King", "Lawrence Pit" ]
   s.email = 'dan@zeraweb.com'
   s.homepage = 'http://dev.zeraweb.com/'
   s.summary  = "Pattern-based dispatch for Ruby, inspired by Topher Cyll's multi."
@@ -46,16 +46,15 @@ task :gemspec do
   end
 end
 
-#desc 'Publish rdoc to RubyForge.'
-#task :publish do
-#  # `rsync -avz --delete doc/rdoc/ dyoder67@rubyforge.org:/var/www/gforge-projects/autocode/`
-#  `scp -r doc/rdoc dyoder67@rubyforge.org:/var/www/gforge-projects/autocode/`
-#end
+desc 'Publish rdoc to RubyForge.'
+task :publish do
+  `rsync -a --delete doc/rdoc/ dyoder67@rubyforge.org:/var/www/gforge-projects/functor/`
+end
 
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'doc/rdoc'
   rdoc.options << '--line-numbers'
-  rdoc.rdoc_files.add([ 'README', 'HISTORY', 'lib/*.rb' ])
+  rdoc.rdoc_files.add([ 'doc/README', 'doc/HISTORY', 'lib/*.rb' ])
 end
 
 Rake::TestTask.new(:test) do |t|
