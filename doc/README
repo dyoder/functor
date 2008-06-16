@@ -1,4 +1,8 @@
-Functor provides pattern-based function and method dispatch for Ruby. To use it in a class:
+Functor provides pattern-based function and method dispatch for Ruby, originally inspired by Topher Cyll's multi gem. 
+
+= Method Functors
+
+To use it in a class:
 
   class Repeater
     attr_accessor :times
@@ -13,16 +17,18 @@ Functor provides pattern-based function and method dispatch for Ruby. To use it 
   r.repeat( "-" ) # => "- - - - -"
   r.repeat( 7.3 ) # => ArgumentError!
 
-Warning: This defines a class instance variable @__functors behind the scenes as a side-effect. Also, although inheritance works within a functor method, super does not. To call the parent method, you need to call it explicitly using the #functors class method, like this:
+Warning: This defines a class instance variable <tt>@__functors</tt> behind the scenes as a side-effect. Also, although inheritance works within a functor method, super does not. To call the parent method, you need to call it explicitly using the <tt>#functors</tt> class method, like this:
 
   A.functors[ :foo ].apply( self, 'bar' )
+
+= Stand-Alone Functors
 
 You can also define Functor objects directly:
 
   fib = Functor.new do
     given( 0 ) { 0 }
     given( 1 ) { 1 }
-    given( 2..10000 ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
+    given( Integer ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
   end
   
 You can use functors directly with functions taking a block like this:
@@ -33,7 +39,9 @@ You can call a functor as a method using #apply:
 
   fun.apply( obj, 7 )
   
-which is actually how the method dispatch is implemented.
+which is actually how the method functors are implemented.
+
+= Pattern Matching
 
 Arguments are matched first using === and then ==, so anything that supports these methods can be matched against. In addition, you may pass "guards," any object that responds to #call and which take and object (the argument) and return true or false. This allows you to do things like this:
 
@@ -43,3 +51,21 @@ Arguments are matched first using === and then ==, so anything that supports the
   end
 
 which will return "white" and "silver" alternately for a sequence of numbers.
+
+= Precedence
+
+Precedence is defined in order of declaration: first-come, first-serve, aka FIFO. Thus, you need to be careful in how you define your functor. The Fibonacci example above would not work properly if the Integer pattern was given first. That said, it is possible to redefine earlier cases, which, in effect, "demotes" it, as if it had not been declared before. So the following will work properly:
+
+  fib = Functor.new do
+    given( Integer ) { |n| raise "this would start an infinite loop ..." }
+    given( 0 ) { 0 }
+    given( 1 ) { 1 }
+    # but this will "demote" the Integer pattern and now it will work ...
+    given( Integer ) { |n| self.call( n - 1 ) + self.call( n - 2 ) }
+  end
+
+This isn't perfect, but it is very easy to predict, simple to implement, and reasonably fast, which other approaches (such as implementing a precedence scheme) are not.
+
+= Credits And Support
+
+Functor was written by Dan Yoder, Matthew King, and Lawrence Pit. Send email to dan at zeraweb.com for support or questions.
