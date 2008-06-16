@@ -22,7 +22,7 @@ describe "Dispatch on instance method should" do
   end
   
   specify "raise an exception if there is no matching value" do
-    lambda { @r.repeat( 7.3) }.should.raise(ArgumentError)
+    lambda { @r.repeat( 7.3 ) }.should.raise(ArgumentError)
   end
 end
 

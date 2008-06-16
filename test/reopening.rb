@@ -2,17 +2,17 @@ require "#{File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
-  functor( :smurf, Integer ) { |x| "A: Integer" }
+  functor( :foo, Integer ) { |x| 1 }
 end
 
 class A
-  functor( :smurf, Integer ) { |x| "A: Integer (reopened)" }
+  functor( :foo, Integer ) { |x| 2 }
 end
 
 describe "Functor methods should support reopening" do
 
   specify "by allowing reopening of a class to override an implementation" do
-    A.new.smurf( 5 ).should == "A: Integer (reopened)"
+    A.new.foo( 5 ).should == 2
   end
 
 end

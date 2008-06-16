@@ -13,7 +13,9 @@ Functor provides pattern-based function and method dispatch for Ruby. To use it 
   r.repeat( "-" ) # => "- - - - -"
   r.repeat( 7.3 ) # => RuntimeError!
 
-Warning: This defines a class instance variable @functors behind the scenes as a side-effect. Also, functors won't inherit properly at this point.
+Warning: This defines a class instance variable @__functors behind the scenes as a side-effect. Also, although inheritance works within a functor method, super does not. To call the parent method, you need to call it explicitly using the #functors class method, like this:
+
+  A.functors[ :foo ].apply( self, 'bar' )
 
 You can also define Functor objects directly:
 

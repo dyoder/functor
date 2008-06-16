@@ -4,16 +4,14 @@ class Functor
   
   module Method
     def self.included( k )
+      def k.functors ; @__functors ||= {} ; end
       def k.functor( name, *args, &block )
-        functors = module_eval { @__functors ||= {} }
         unless functors[ name ]
           functors[ name ] = Functor.new
-          klass = self.name
-          module_eval <<-CODE
+          klass = self.name ; module_eval <<-CODE
             def #{name}( *args, &block ) 
               begin
-                functors = #{klass}.module_eval { @__functors }
-                functors[ :#{name} ].bind( self ).call( *args, &block ) 
+                #{klass}.functors[ :#{name} ].apply( self, *args, &block ) 
               rescue ArgumentError => e
                 begin
                   super
@@ -38,18 +36,25 @@ class Functor
     @rules << [ pattern, action ]
   end
   
-  def bind( object ) ; @object = object ; self ; end
+  def apply( object, *args, &block )
+    object.instance_exec( *args, &match( *args, &block ) )
+  end
   
   def call( *args, &block )
     args.push( block ) if block_given?
-    pattern, action = @rules.find { | pattern, action | match?( args, pattern ) }
-    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) unless action
-    @object ? @object.instance_exec( *args, &action ) : action.call( *args )
+    match( *args, &block ).call( *args )
   end
   
-  def to_proc ; lambda { |*args| self.call(*args) } ; end
+  def to_proc ; lambda { |*args| self.call( *args ) } ; end
   
   private
+  
+  def match( *args, &block )
+    args.push( block ) if block_given? 
+    pattern, action = @rules.find { | pattern, action | match?( args, pattern ) }
+    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) unless action
+    return action
+  end
   
   def match?( args, pattern )
     pattern.zip(args).all? { |x,y| x === y or x == y or 
