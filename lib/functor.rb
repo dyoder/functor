@@ -1,4 +1,4 @@
-require 'lib/object'
+require "#{File.dirname(__FILE__)}/object"
 
 class Functor
   
