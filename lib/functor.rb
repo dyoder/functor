@@ -11,13 +11,18 @@ class Functor
           klass = self.name ; module_eval <<-CODE
             def #{name}( *args, &block ) 
               begin
-                #{klass}.functors[ :#{name} ].apply( self, *args, &block ) 
+                rval = #{klass}.functors[ :#{name} ].apply( self, *args, &block ) 
               rescue ArgumentError => e
                 begin
                   super
                 rescue NoMethodError => f
                   raise e
                 end
+              end
+              if rval.is_a? Continuation
+                super ; rval.call
+              else
+                rval
               end
             end
           CODE
@@ -52,13 +57,16 @@ class Functor
   def match( *args, &block )
     args.push( block ) if block_given? 
     pattern, action = @rules.find { | pattern, action | match?( args, pattern ) }
-    raise ArgumentError.new( "argument mismatch for argument(s): #{args.inspect}." ) unless action
+    raise ArgumentError.new( "argument mismatch for argument(s): #{ args.map { |arg| arg.inspect }.join(', ') }." ) unless action
     return action
   end
   
   def match?( args, pattern )
-    pattern.zip(args).all? { |x,y| x === y or x == y or 
-        ( x.respond_to?(:call) && x.call( y ) ) } if pattern.length == args.length
+    args.zip( pattern ).all? { | arg, rule | pair?( arg, rule ) } if args.length == pattern.length
+  end
+  
+  def pair?( arg, rule )
+    ( rule.is_a?( Proc ) and rule.call( arg ) ) or rule === arg or rule == arg
   end
   
 end
