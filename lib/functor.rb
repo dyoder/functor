@@ -11,18 +11,13 @@ class Functor
           klass = self.name ; module_eval <<-CODE
             def #{name}( *args, &block ) 
               begin
-                rval = #{klass}.functors[ :#{name} ].apply( self, *args, &block ) 
+                #{klass}.functors[ :#{name} ].apply( self, *args, &block ) 
               rescue ArgumentError => e
                 begin
                   super
                 rescue NoMethodError => f
                   raise e
                 end
-              end
-              if rval.is_a? Continuation
-                super ; rval.call
-              else
-                rval
               end
             end
           CODE
@@ -42,23 +37,21 @@ class Functor
   end
   
   def apply( object, *args, &block )
-    object.instance_exec( *args, &match( *args, &block ) )
+    object.instance_exec( *args, &match( args, &block ) )
   end
   
   def call( *args, &block )
-    args.push( block ) if block_given?
-    match( *args, &block ).call( *args )
+    match( args, &block ).call( *args )
   end
   
   def to_proc ; lambda { |*args| self.call( *args ) } ; end
   
   private
   
-  def match( *args, &block )
-    args.push( block ) if block_given? 
-    pattern, action = @rules.find { | pattern, action | match?( args, pattern ) }
-    raise ArgumentError.new( "argument mismatch for argument(s): #{ args.map { |arg| arg.inspect }.join(', ') }." ) unless action
-    return action
+  def match( args, &block )
+    args << block if block_given?
+    pattern, action = @rules.find { | p, a | match?( args, p ) }
+    action or raise argument_error( args )
   end
   
   def match?( args, pattern )
@@ -67,6 +60,10 @@ class Functor
   
   def pair?( arg, rule )
     ( rule.is_a?( Proc ) and rule.call( arg ) ) or rule === arg or rule == arg
+  end
+  
+  def argument_error( args )
+    ArgumentError.new( "argument mismatch for argument(s): #{ args.map{ |arg| arg.inspect }.join(', ') }." )
   end
   
 end
