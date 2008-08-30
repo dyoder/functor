@@ -44,6 +44,10 @@ class Functor
     match( args, &block ).call( *args )
   end
   
+  def []( *args, &block )
+    call( *args, &block )
+  end
+  
   def to_proc ; lambda { |*args| self.call( *args ) } ; end
   
   private
