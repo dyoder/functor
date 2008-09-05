@@ -63,7 +63,7 @@ class Functor
   end
   
   def pair?( arg, rule )
-    ( rule.is_a?( Proc ) and rule.call( arg ) ) or rule === arg or rule == arg
+    ( rule.respond_to? :call and rule.call( arg ) ) or rule === arg or rule == arg
   end
   
   def argument_error( args )
