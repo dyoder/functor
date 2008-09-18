@@ -2,8 +2,8 @@ require "#{File.dirname(__FILE__)}/helpers"
 
 class C
   include Functor::Method
-  functor( :foo, 1 ) { |a| "==" }
   functor( :foo, Integer ) { |a| "===" }
+  functor( :foo, 1 ) { |a| "==" }
   functor( :foo, lambda { |a| a == "boo" } ) { |v| "Lambda: #{v}" }
 end
 

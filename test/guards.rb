@@ -3,14 +3,14 @@ require "#{File.dirname(__FILE__)}/helpers"
 describe "Dispatch should support guards" do
   
   before do
-    @stripe = Functor.new do
-      given( lambda { |x| x % 2 == 0 } ) { 'white' }
-      given( lambda { |x| x % 2 == 1 } ) { 'silver' }
+    @stripe = Functor.new do |f|
+      f.given( lambda { |x| x % 2 == 1 } ) { 'silver' }
+      f.given( lambda { |x| x % 2 == 0 } ) { 'white' }
     end
 
-    @safe_divide = Functor.new do
-      given( lambda { |x| x == 0 }, Integer ) { |x,y| false }
-      given( Integer, Integer ) { |x,y| ( y / ( x * 1.0 )) }
+    @safe_divide = Functor.new do |f|
+      f.given( Integer, Integer ) { |x,y| ( y / ( x * 1.0 )) }
+      f.given( lambda { |x| x == 0 }, Integer ) { |x,y| false }
     end
   end
   

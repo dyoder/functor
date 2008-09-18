@@ -1,9 +1,9 @@
 require "#{File.dirname(__FILE__)}/helpers"
 
-fib ||= Functor.new do
-  given( 0 ) { 0 }
-  given( 1 ) { 1 }
-  given( Integer ) { | n | self.call( n - 1 ) + self.call( n - 2 ) }
+fib ||= Functor.new do |f|
+  f.given( Integer ) { | n | f.call( n - 1 ) + f.call( n - 2 ) }
+  f.given( 0 ) { 0 }
+  f.given( 1 ) { 1 }
 end
 
 describe "Dispatch on a functor object should" do
