@@ -9,7 +9,6 @@ end
 
 class B < A
   functor( :foo, String ) { |s| [ B, String ] }
-  functor( :foo, Float ) { |f| [ B, *A.functors[:foo].apply( self, f ) ] }
 end
 
 describe "Functor methods should support inheritance" do
@@ -22,7 +21,4 @@ describe "Functor methods should support inheritance" do
     B.new.foo( "bar" ).should == [ B, String ]
   end
   
-  specify "by allowing you to call base class functors using #functors" do
-    B.new.foo( 1.0 ).should == [ B, A, Float ]
-  end
 end
