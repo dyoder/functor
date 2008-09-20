@@ -56,7 +56,8 @@ class Functor
   def match( *args, &block )
     args << block if block_given?
     pattern, action = @rules.reverse.find { | p, a | match?( args, p ) }
-    action or argument_error( args )
+    action or 
+      raise ArgumentError.new( "Argument error: no functor matches the given arguments." )
   end
   
   private
@@ -68,9 +69,5 @@ class Functor
   def pair?( arg, rule )
     ( rule.respond_to? :call and rule.call( arg ) ) or rule === arg
   end
-  
-  def argument_error( args )
-    raise ArgumentError.new( "Argument error: no functor matches the given arguments." )
-  end
-  
+    
 end
