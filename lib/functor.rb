@@ -1,5 +1,4 @@
 require "#{File.dirname(__FILE__)}/object"
-  require 'ruby-debug'
 
 class Functor
   
