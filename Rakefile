@@ -14,7 +14,7 @@ spec = Gem::Specification.new do |s|
   s.required_ruby_version = '>= 1.8.6'
   s.name = "functor"
   s.rubyforge_project = 'functor'
-  s.version = "0.5.0"
+  s.version = "0.5.1"
   s.authors = [ "Dan Yoder", "Matthew King", "Lawrence Pit" ]
   s.email = 'dan@zeraweb.com'
   s.homepage = 'http://dev.zeraweb.com/'
