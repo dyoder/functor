@@ -58,7 +58,7 @@ class Functor
   
   def initialize( &block )
     @patterns = []
-    @associations = []
+    @associations = {}
     yield( self ) if block_given?
   end
   
@@ -90,10 +90,15 @@ class Functor
   def to_proc ; lambda { |*args| self.call( *args ) } ; end
     
   def match( *args, &block )
-    args << block if block_given?
-    pattern = @patterns.find { | p | match?( args, p ) }
-    raise ArgumentError.new( "No functor matches the given arguments." ) unless pattern
-    pattern.hash
+    arg_sig = args.hash
+    if pattern_sig = @associations[arg_sig]
+      pattern_sig
+    else
+      args << block if block_given?
+      pattern = @patterns.find { | p | match?( args, p ) }
+      raise ArgumentError.new( "No functor matches the given arguments." ) unless pattern
+      @associations[arg_sig] = pattern.hash
+    end
   end
   
   private
