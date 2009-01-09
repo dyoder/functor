@@ -29,7 +29,7 @@ class Functor
               signature = f.match( *args )
               send "functo_#{signature}", *args
             rescue NoMethodError
-              raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
+              raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
             end
           end 
         end
@@ -46,7 +46,7 @@ class Functor
               signature = f.match( self, *args )
               send "functo_#{signature}", *args
             rescue NoMethodError
-              raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
+              raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
             end
           end
         end
