@@ -1,4 +1,6 @@
 require "#{File.dirname(__FILE__)}/object"
+require 'rubygems'
+require 'metaid'
 
 class Functor
   
@@ -22,12 +24,14 @@ class Functor
         name = name.to_sym
         f = ( functors[ name ] ||=  Functor.new )
         f.register( pattern )
-        define_method( "functo_#{pattern.hash}", block )
+        f.meta_def "functo_#{pattern.hash}" do |caller, *args|
+          caller.instance_exec *args, &block
+        end
         unless respond_to?( name )
           define_method( name ) do | *args |
             begin
               signature = f.match( *args )
-              send "functo_#{signature}", *args
+              f.send "functo_#{signature}", self, *args
             rescue NoMethodError
               raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
             end
@@ -39,12 +43,14 @@ class Functor
         name = name.to_sym
         f = ( functors[ name ] ||=  Functor.new )
         f.register( pattern )
-        define_method( "functo_#{pattern.hash}", block )
+        f.meta_def "functo_#{pattern.hash}" do |caller, *args|
+          caller.instance_exec *args, &block
+        end
         unless respond_to?( name )
           define_method( name ) do | *args |
             begin
               signature = f.match( self, *args )
-              send "functo_#{signature}", *args
+              f.send "functo_#{signature}", self, *args
             rescue NoMethodError
               raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
             end
