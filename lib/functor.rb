@@ -10,22 +10,46 @@ class Functor
       return r
     end
     def self.included( k )
+      
       def k.functors
         @__functors ||= superclass.respond_to?( :functors ) ? 
           Functor::Method.copy_functors( superclass.functors ) : {}
       end
-      def k.functor( name, *args, &block )
+      
+      def k.functor( name, *pattern, &block )
         name = name.to_sym
-        ( f = ( functors[ name ] or 
-          ( functors[ name ] = Functor.new ) ) ).given( *args, &block )
-        define_method( name ) { | *args | instance_exec( *args, &f.match( *args ) ) } 
+        f = ( functors[ name ] ||=  Functor.new )
+        f.register( *pattern )
+        define_method( "functo_#{pattern.hash}", block )
+        unless respond_to?( name )
+          define_method( name ) do | *args |
+            begin
+              signature = f.match( *args )
+              send "functo_#{signature}", *args
+            rescue NoMethodError
+              raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
+            end
+          end 
+        end
       end
-      def k.functor_with_self( name, *args, &block )
+      
+      def k.functor_with_self( name, *pattern, &block )
         name = name.to_sym
-        ( f = ( functors[ name ] or 
-          ( functors[ name ] = Functor.new ) ) ).given( *args, &block )
-        define_method( name ) { | *args | instance_exec( *args, &f.match( self, *args ) ) } 
+        f = ( functors[ name ] ||=  Functor.new )
+        f.register( *pattern )
+        define_method( "functo_#{pattern.hash}", block )
+        unless respond_to?( name )
+          define_method( name ) do | *args |
+            begin
+              signature = f.match( self, *args )
+              send "functo_#{signature}", *args
+            rescue NoMethodError
+              raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
+            end
+          end
+        end
       end
+      
     end
   end
   
@@ -38,12 +62,22 @@ class Functor
     @rules = from.instance_eval { @rules.clone }
   end
   
+  def register( *pattern )
+    @rules << pattern
+  end
+  
   def given( *pattern, &action )
-    @rules << [ pattern, action ]
+    register pattern
+    signature = pattern.hash
+    name = "functo_#{signature}"
+    class << self; self; end.instance_eval do
+      define_method( name, action )
+    end
   end
   
   def call( *args, &block )
-    match( *args, &block ).call( *args )
+    signature = match( *args, &block )
+    send "functo_#{signature}", *args
   end
   
   def []( *args, &block )
@@ -54,9 +88,9 @@ class Functor
     
   def match( *args, &block )
     args << block if block_given?
-    pattern, action = @rules.reverse.find { | p, a | match?( args, p ) }
-    action or 
-      raise ArgumentError.new( "Argument error: no functor matches the given arguments." )
+    pattern = @rules.reverse.find { | p | match?( args, p ) }
+    raise ArgumentError.new( "No functor matches the given arguments." ) unless pattern
+    pattern.hash
   end
   
   private
