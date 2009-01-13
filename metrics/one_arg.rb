@@ -49,4 +49,4 @@ OneArg.new "native method" do
   end
 end
 
-OneArg.compare_instances( 2, 6)
+OneArg.compare_instances( 10, 50)
