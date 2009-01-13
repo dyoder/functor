@@ -17,10 +17,6 @@ To use it in a class:
   r.repeat( "-" ) # => "- - - - -"
   r.repeat( 7.3 ) # => ArgumentError!
 
-Warning: This defines a class instance variable <tt>@__functors</tt> behind the scenes as a side-effect. Also, although inheritance works within a functor method, super does not. To call the parent method, you need to call it explicitly using the <tt>#functors</tt> class method, like this:
-
-  A.functors[ :foo ].apply( self, 'bar' )
-
 = Stand-Alone Functors
 
 You can also define Functor objects directly:

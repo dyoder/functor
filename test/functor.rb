@@ -12,12 +12,12 @@ describe "Dispatch on instance method should" do
   
   before do
     @r = Repeater.new
-    @r.times = 5
+    @r.times = 3
   end
   
   specify "invoke different methods with object scope based on arguments" do
-    @r.repeat( 5 ).should == 25
-    @r.repeat( "-" ).should == '- - - - -'
+    @r.repeat( 5 ).should == 15
+    @r.repeat( "-" ).should == '- - -'
     @r.repeat.should == nil
   end
   
