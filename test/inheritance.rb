@@ -21,4 +21,8 @@ describe "Functor methods should support inheritance" do
     B.new.foo( "bar" ).should == [ B, String ]
   end
   
+  # specify "by allowing #super" do
+  #   B.new.foo(3.0).should == [ Float, A]
+  # end
+  
 end
