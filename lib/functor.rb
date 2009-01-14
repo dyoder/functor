@@ -77,7 +77,10 @@ class Functor
   def to_proc ; lambda { |*args| self.call( *args ) } ; end
     
   def self.match?( args, pattern )
-    args.all? do |a|
+    @cache ||= {}
+    a_hash, p_hash = args.hash, pattern.hash
+    return true if @cache[a_hash] == p_hash
+    @cache[a_hash] = p_hash if args.all? do |a|
       p = pattern[args.index(a)]; p === a || ( p.respond_to?(:call) && p.call(a))
     end if args.length == pattern.length
   end
