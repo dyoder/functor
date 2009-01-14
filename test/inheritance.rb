@@ -9,7 +9,7 @@ end
 
 class B < A
   functor( :foo, String ) { |s| [ B, String ] }
-  functor( :foo, Float ) { |x| super.reverse }
+  # functor( :foo, Float ) { |x| super.reverse }
 end
 
 describe "Functor methods should support inheritance" do
@@ -22,8 +22,8 @@ describe "Functor methods should support inheritance" do
     B.new.foo( "bar" ).should == [ B, String ]
   end
   
-  specify "by allowing #super" do
-    B.new.foo(3.0).should == [ Float, A]
-  end
+  # specify "by allowing #super" do
+  #   B.new.foo(3.0).should == [ Float, A]
+  # end
   
 end

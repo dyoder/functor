@@ -14,7 +14,12 @@ class Functor
         define_method( name, action )
         newest = instance_method(name)
         define_method( name ) do | *args |
-          if Functor.match?(args, pattern)
+          @cache ||= {}
+          args_hash = args.hash
+          if meth = @cache[args_hash]
+            meth.bind(self).call(*args)
+          elsif Functor.match?(args, pattern)
+            @cache[args_hash] = newest
             newest.bind(self).call(*args)
           elsif old
             old.bind(self).call(*args)
@@ -77,10 +82,7 @@ class Functor
   def to_proc ; lambda { |*args| self.call( *args ) } ; end
     
   def self.match?( args, pattern )
-    @cache ||= {}
-    a_hash, p_hash = args.hash, pattern.hash
-    return true if @cache[a_hash] == p_hash
-    @cache[a_hash] = p_hash if args.all? do |a|
+    args.all? do |a|
       p = pattern[args.index(a)]; p === a || ( p.respond_to?(:call) && p.call(a))
     end if args.length == pattern.length
   end
