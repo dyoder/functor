@@ -104,7 +104,9 @@ class Functor
   private
   
   def match?( args, pattern )
-    args.zip( pattern ).all? { | arg, pat | pair?( arg, pat ) } if args.length == pattern.length
+    args.all? do |a|
+      p = pattern[args.index(a)]; p === a || ( p.respond_to?(:call) && p.call(a))
+    end if args.length == pattern.length
   end
   
   def pair?( arg, pat )
