@@ -9,7 +9,7 @@ class A
   functor( :foo, "one"  )  { |x| :one }
 end
 
-class B
+class Native
   def foo(x)
     case x
     when Integer then :integer
@@ -27,26 +27,27 @@ class OneArg < Steve
   
 end
 
+OneArg.new "native method" do
+  before do
+    @n = Native.new
+  end
+  measure do
+    200.times do
+      [ 1, 2, 3, 1.0, 2.0, 3.0, "1", "2", "3", :uno, :dos, :tres, "one"].each { |item| @n.foo item }
+    end
+  end
+end
+
 OneArg.new "functor method" do
   before do
     @a = A.new
   end
   measure do
-    100.times do
-      [ 1, 2, 3, 1.0, 2.0, 3.0, "1", "2", "3", :uno, :dos, :tres, "one"].each { |item| @a.foo item }
+    200.times do
+      [ 1, 2, 1.0, 2.0, "1", "2", :uno, :dos, "one"].each { |item| @a.foo item }
     end
   end
 end
 
-OneArg.new "native method" do
-  before do
-    @b = B.new
-  end
-  measure do
-    100.times do
-      [ 1, 2, 3, 1.0, 2.0, 3.0, "1", "2", "3", :uno, :dos, :tres, "one"].each { |item| @b.foo item }
-    end
-  end
-end
 
-OneArg.compare_instances( 10, 50)
+OneArg.compare_instances( 16, 32)
