@@ -2,6 +2,52 @@ require "#{File.dirname(__FILE__)}/object"
 
 class Functor
   
+  module ClassMethods
+    
+    def instance_methods
+      super.reject { |method| method =~ /^functo_/ }
+    end
+    
+    def functors
+      @__functors ||= superclass.respond_to?( :functors ) ? 
+        Functor::Method.copy_functors( superclass.functors ) : {}
+    end
+    
+    def functor( name, *pattern, &block )
+      name = name.to_sym
+      f = ( functors[ name ] ||=  Functor.new )
+      f.register( pattern )
+      define_method( "functo_#{pattern.hash}", block )
+      unless respond_to?( name )
+        define_method( name ) do | *args |
+          begin
+            signature = f.match( *args )
+            send "functo_#{signature}", *args
+          rescue NoMethodError
+            raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
+          end
+        end 
+      end
+    end
+    
+    def functor_with_self( name, *pattern, &block )
+      name = name.to_sym
+      f = ( functors[ name ] ||=  Functor.new )
+      f.register( pattern )
+      define_method( "functo_#{pattern.hash}", block )
+      unless respond_to?( name )
+        define_method( name ) do | *args |
+          begin
+            signature = f.match( self, *args )
+            send "functo_#{signature}", *args
+          rescue NoMethodError
+            raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
+          end
+        end
+      end
+    end
+  end
+  
   module Method
     
     def self.copy_functors( functors )
@@ -11,47 +57,12 @@ class Functor
       return r
     end
     
+    def methods
+      super.reject { |method| method =~ /^functo_/ }
+    end
+    
     def self.included( k )
-      
-      def k.functors
-        @__functors ||= superclass.respond_to?( :functors ) ? 
-          Functor::Method.copy_functors( superclass.functors ) : {}
-      end
-      
-      def k.functor( name, *pattern, &block )
-        name = name.to_sym
-        f = ( functors[ name ] ||=  Functor.new )
-        f.register( pattern )
-        define_method( "functo_#{pattern.hash}", block )
-        unless respond_to?( name )
-          define_method( name ) do | *args |
-            begin
-              signature = f.match( *args )
-              send "functo_#{signature}", *args
-            rescue NoMethodError
-              raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
-            end
-          end 
-        end
-      end
-      
-      def k.functor_with_self( name, *pattern, &block )
-        name = name.to_sym
-        f = ( functors[ name ] ||=  Functor.new )
-        f.register( pattern )
-        define_method( "functo_#{pattern.hash}", block )
-        unless respond_to?( name )
-          define_method( name ) do | *args |
-            begin
-              signature = f.match( self, *args )
-              send "functo_#{signature}", *args
-            rescue NoMethodError
-              raise ArgumentError.new( "No functor matches the given arguments for method #{name}." )
-            end
-          end
-        end
-      end
-      
+      k.extend ClassMethods
     end
   end
   
