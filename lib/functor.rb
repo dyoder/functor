@@ -6,7 +6,23 @@ class Functor
   
   module Method
     
+    def functor_cache
+      self.class.functor_cache
+    end
+    
     def self.included( k )
+      
+      def k.functor_cache
+        @functor_cache ||= {}
+      end
+      
+      def k.functor_cache_size
+        @functor_cache_size
+      end
+      
+      def k.functor_cache_size=(val)
+        @functor_cache_size = val
+      end
       
       def k.functor( name, *pattern, &action )
         name = name.to_s
@@ -14,12 +30,13 @@ class Functor
         define_method( name, action )
         newest = instance_method(name)
         define_method( name ) do | *args |
-          @cache ||= {}
-          args_hash = args.hash
-          if meth = @cache[args_hash]
+          signature = args.hash
+          cache = (self.class.functor_cache[name] ||= {})
+          cache.clear if c_size = self.class.functor_cache_size && cache.size > c_size
+          if meth = cache[signature]
             meth.bind(self).call(*args)
           elsif Functor.match?(args, pattern)
-            @cache[args_hash] = newest
+            cache[signature] = newest
             newest.bind(self).call(*args)
           elsif old
             old.bind(self).call(*args)

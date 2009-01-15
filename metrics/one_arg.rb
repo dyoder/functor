@@ -2,6 +2,7 @@ require "#{here = File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
+  
   functor( :foo, Integer ) { |x| :integer }
   functor( :foo, String )  { |x| :string }
   functor( :foo, Float )   { |x| :float }
@@ -24,30 +25,34 @@ class Native
 end
 
 class OneArg < Steve
-  
+  before do
+    nums = (1..100).to_a
+    alphas = ("a".."cv").to_a
+    @args = nums + nums.map { |i| i.to_f } + alphas + alphas.map { |i| i.to_sym } + Array.new(100, "one")
+  end
 end
 
 OneArg.new "native method" do
-  before do
+  before_sample do
     @n = Native.new
   end
   measure do
-    200.times do
-      [ 1, 2, 3, 1.0, 2.0, 3.0, "1", "2", "3", :uno, :dos, :tres, "one"].each { |item| @n.foo item }
+    10.times do
+      @args.each { |item| @n.foo item }
     end
   end
 end
 
 OneArg.new "functor method" do
-  before do
+  before_sample do
     @a = A.new
   end
   measure do
-    200.times do
-      [ 1, 2, 1.0, 2.0, "1", "2", :uno, :dos, "one"].each { |item| @a.foo item }
+    10.times do
+      @args.each { |item| @a.foo item }
     end
   end
 end
 
 
-OneArg.compare_instances( 16, 32)
+OneArg.compare_instances( 8, 64)

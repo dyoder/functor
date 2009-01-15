@@ -6,6 +6,7 @@ class Repeater
   functor( :repeat, Integer ) { |x| x * @times }
   functor( :repeat, String ) { |s| [].fill( s, 0, @times ).join(' ') }
   functor( :repeat ) { nil }
+  functor( :distraction, Integer ) { |x| "Boo!" }
 end
 
 describe "Dispatch on instance method should" do
@@ -16,6 +17,7 @@ describe "Dispatch on instance method should" do
   end
   
   specify "invoke different methods with object scope based on arguments" do
+    @r.distraction( 5 )
     @r.repeat( 5 ).should == 15
     @r.repeat( "-" ).should == '- - -'
     @r.repeat.should == nil
