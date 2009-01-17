@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/helpers"
 
-class C
+class Matchers
   include Functor::Method
   functor( :foo, Integer ) { |a| "===" }
   functor( :foo, 1 ) { |a| "==" }
@@ -10,15 +10,15 @@ end
 describe "Functors match" do
 
   specify "using ==" do
-    C.new.foo( 1 ).should == "=="
+    Matchers.new.foo( 1 ).should == "=="
   end
   
   specify "using ===" do
-    C.new.foo( 2 ).should == "==="
+    Matchers.new.foo( 2 ).should == "==="
   end
 
   specify "using #call" do
-    C.new.foo( "boo" ).should == "Lambda: boo"
+    Matchers.new.foo( "boo" ).should == "Lambda: boo"
   end
 
 end

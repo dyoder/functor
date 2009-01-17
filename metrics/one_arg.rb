@@ -2,6 +2,7 @@ require "#{here = File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
+  functor_cache_size 1000
   
   functor( :foo, Integer ) { |x| :integer }
   functor( :foo, String )  { |x| :string }
@@ -32,17 +33,6 @@ class OneArg < Steve
   end
 end
 
-OneArg.new "native method" do
-  before_sample do
-    @n = Native.new
-  end
-  measure do
-    10.times do
-      @args.each { |item| @n.foo item }
-    end
-  end
-end
-
 OneArg.new "functor method" do
   before_sample do
     @a = A.new
@@ -54,5 +44,15 @@ OneArg.new "functor method" do
   end
 end
 
+OneArg.new "native method" do
+  before_sample do
+    @n = Native.new
+  end
+  measure do
+    10.times do
+      @args.each { |item| @n.foo item }
+    end
+  end
+end
 
-OneArg.compare_instances( 8, 64)
+OneArg.compare_instances( 4, 8)

@@ -1,29 +1,29 @@
 require "#{File.dirname(__FILE__)}/helpers"
 
-class A
+class Parent
   include Functor::Method
-  functor( :foo, Integer ) { |x| [ A, Integer ] }
-  functor( :foo, String ) { |s| [ A, String ] }
-  functor( :foo, Float ) { |h| [ A, Float ] }
+  functor( :foo, Integer ) { |x| [ Parent, Integer ] }
+  functor( :foo, String ) { |s| [ Parent, String ] }
+  functor( :foo, Float ) { |h| [ Parent, Float ] }
 end
 
-class B < A
-  functor( :foo, String ) { |s| [ B, String ] }
-  # functor( :foo, Float ) { |x| super.reverse }
+class Child < Parent
+  functor( :foo, String ) { |s| [ Child, String ] }
+  functor( :foo, Float ) { |x| super.reverse }
 end
 
 describe "Functor methods should support inheritance" do
   
   specify "by inheriting base class implementations" do
-    B.new.foo( 5 ).should == [ A, Integer ]
+    Child.new.foo( 5 ).should == [ Parent, Integer ]
   end
   
   specify "by allowing derived classes to override an implementation" do
-    B.new.foo( "bar" ).should == [ B, String ]
+    Child.new.foo( "bar" ).should == [ Child, String ]
   end
   
-  # specify "by allowing #super" do
-  #   B.new.foo(3.0).should == [ Float, A]
-  # end
+  specify "by allowing #super" do
+    Child.new.foo(3.0).should == [ Float, Parent]
+  end
   
 end

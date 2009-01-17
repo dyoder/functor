@@ -16,26 +16,23 @@ class Functor
         @functor_cache ||= {}
       end
       
-      def k.functor_cache_size
-        @functor_cache_size
-      end
-      
-      def k.functor_cache_size=(val)
-        @functor_cache_size = val
+      def k.functor_cache_size(val=nil)
+        @functor_cache_size = val if val
       end
       
       def k.functor( name, *pattern, &action )
         name = name.to_s
+        cache = (functor_cache[name] ||= {})
+        cache_size = functor_cache_size
         old = instance_method(name) if instance_methods.include?( name )           
         define_method( name, action )
         newest = instance_method(name)
         define_method( name ) do | *args |
           signature = args.hash
-          cache = (self.class.functor_cache[name] ||= {})
-          cache.clear if c_size = self.class.functor_cache_size && cache.size > c_size
           if meth = cache[signature]
             meth.bind(self).call(*args)
           elsif Functor.match?(args, pattern)
+            cache = {} if cache_size && cache.size > cache_size
             cache[signature] = newest
             newest.bind(self).call(*args)
           elsif old
@@ -48,11 +45,19 @@ class Functor
       
       def k.functor_with_self( name, *pattern, &action )
         name = name.to_s
+        cache = (functor_cache[name] ||= {})
+        cache_size = functor_cache_size
         old = instance_method(name) if instance_methods.include?( name )           
         define_method( name, action )
         newest = instance_method(name)
         define_method( name ) do | *args |
-          if Functor.match?([self] + args, pattern)
+          s_args = [self] + args
+          signature = (s_args).hash
+          if meth = cache[signature]
+            meth.bind(self).call(*args)
+          elsif Functor.match?(s_args, pattern)
+            cache = {} if cache_size && cache.size > cache_size
+            cache[signature] = newest
             newest.bind(self).call(*args)
           elsif old
             old.bind(self).call(*args)

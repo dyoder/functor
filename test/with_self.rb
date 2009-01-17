@@ -1,6 +1,6 @@
 require "#{File.dirname(__FILE__)}/helpers"
 
-class A
+class WithSelf
   attr_accessor :bar
   include Functor::Method
   def initialize( x ) ; @bar = x ; end
@@ -12,15 +12,15 @@ end
 describe "Functor methods should support allow matching on self" do
   
   specify "by allowing functor_with_self to provide a guard on self" do
-    A.new( true ).foo( 5 ).should == 'bar'
+    WithSelf.new( true ).foo( 5 ).should == 'bar'
   end
   
   specify "or by simply providing self as an argument" do
-    A.new( false ).foo( 5 ).should == 5
+    WithSelf.new( false ).foo( 5 ).should == 5
   end
   
   specify "another guard example, for those who need it" do
-    A.new( "me" ).foo( 87 ).should == "I be string"
+    WithSelf.new( "me" ).foo( 87 ).should == "I be string"
   end
 
 end
