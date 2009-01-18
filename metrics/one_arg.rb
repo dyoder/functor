@@ -2,7 +2,7 @@ require "#{here = File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
-  functor_cache_size 1000
+  functor_cache_config :size => 700, :base => 5
   
   functor( :foo, Integer ) { |x| :integer }
   functor( :foo, String )  { |x| :string }
@@ -27,20 +27,25 @@ end
 
 class OneArg < Steve
   before do
-    nums = (1..100).to_a
-    alphas = ("a".."cv").to_a
-    @args = nums + nums.map { |i| i.to_f } + alphas + alphas.map { |i| i.to_sym } + Array.new(100, "one")
+    nums = (1..200).to_a
+    alphas = ("a".."gr").to_a
+    @args_set = nums + nums.map { |i| i.to_f } + alphas + alphas.map { |i| i.to_sym } + Array.new(200, "one")
+    @args = []
+    srand(46)
+    9000.times { @args << @args_set[rand(@args_set.size)] }
   end
 end
 
 OneArg.new "functor method" do
   before_sample do
-    @a = A.new
+    @a = A.new    
   end
   measure do
-    10.times do
-      @args.each { |item| @a.foo item }
-    end
+    @args.each { |item| @a.foo item }
+  end
+  
+  after_sample do
+    puts A.functor_cache.map{ |c| c["foo"].size }.inspect
   end
 end
 
@@ -49,9 +54,7 @@ OneArg.new "native method" do
     @n = Native.new
   end
   measure do
-    10.times do
-      @args.each { |item| @n.foo item }
-    end
+    @args.each { |item| @n.foo item }
   end
 end
 
