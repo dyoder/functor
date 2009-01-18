@@ -4,34 +4,19 @@ require 'metaid'
 
 class Functor
   
+  def self.cache_config(options={})
+    (@cache_config ||= { :size => 10_000, :base => 10 }).merge!(options)
+  end
+  
   module Method
-    
-    def functor_cache
-      self.class.functor_cache
-    end
     
     def self.included( k )
       
       def k.functor_cache; @functor_cache ||= [{},{},{},{}]; end
       
       def k.functor_cache_config(options={})
-        @functor_cache_size = options[:size] if options[:size]
-        @functor_cache_base = options[:base] if options[:base]
+        (@functor_cache_config ||= Functor.cache_config).merge!(options)
       end
-      
-      def k.functor_cache_size(val=nil)
-        @functor_cache_size ||= val
-      end
-      
-      
-      def k.functor_cache_base(val=nil)
-        @functor_cache_base || @functor_cache_base = ( val || 16 )
-      end
-      
-      def k.functor_cache_0; functor_cache[0]; end
-      def k.functor_cache_1; functor_cache[1]; end
-      def k.functor_cache_2; functor_cache[2]; end
-      def k.functor_cache_3; functor_cache[3]; end
       
       def k.functor( name, *pattern, &action )
         _functor( name, false, *pattern, &action)
@@ -46,7 +31,7 @@ class Functor
       def k._functor( name, with_self=false, *pattern, &action)
         name = name.to_s
         c0,c1,c2,c3 = (0..3).map { |i| functor_cache[i][name] ||= {} }
-        cache_size, cache_base = functor_cache_size, functor_cache_base
+        cache_size, cache_base = functor_cache_config[:size], functor_cache_config[:base]
         c1_thresh,c2_thresh,c3_thresh = cache_base.to_i, (cache_base ** 2).to_i, (cache_base ** 3).to_i
         # Grab the current incarnation of The Method
         old = instance_method(name) if instance_methods.include?( name )           
