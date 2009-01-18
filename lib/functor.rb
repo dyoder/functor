@@ -47,6 +47,7 @@ class Functor
         name = name.to_s
         c0,c1,c2,c3 = (0..3).map { |i| functor_cache[i][name] ||= {} }
         cache_size, cache_base = functor_cache_size, functor_cache_base
+        c1_thresh,c2_thresh,c3_thresh = cache_base.to_i, (cache_base ** 2).to_i, (cache_base ** 3).to_i
         old = instance_method(name) if instance_methods.include?( name )           
         define_method( name, action )
         newest = instance_method(name)
@@ -56,21 +57,22 @@ class Functor
           if meth = c3[signature]
             meth.first.bind(self).call(*args)
           elsif meth = c2[signature]
+            # when c3 fills up, shift its contents down to c2, and so forth
             c0, c1, c2, c3 = c1, c2, c3, {} if cache_size && c3.size >= cache_size
             count = meth[-1]
-            (c3[signature] = meth && c2.delete(signature)) if count > cache_base ** 3
+            (c3[signature] = meth && c2.delete(signature)) if count > c3_thresh
             meth[-1] += 1
             meth.first.bind(self).call(*args)
           elsif meth = c1[signature]
             c0, c1, c2 = c1, c2, {} if cache_size && c2.size >= cache_size
             count = meth[-1]
-            (c2[signature] = meth && c1.delete(signature)) if count > cache_base ** 2
+            (c2[signature] = meth && c1.delete(signature)) if count > c2_thresh
             meth[-1] += 1
             meth.first.bind(self).call(*args)
           elsif meth = c0[signature]
             c0, c1 = c1, {} if cache_size && c1.size >= cache_size
             count = meth[-1]
-            (c1[signature] = meth && c0.delete(signature)) if count > cache_base 
+            (c1[signature] = meth && c0.delete(signature)) if count > c1_thresh 
             meth[-1] += 1
             meth.first.bind(self).call(*args)
           elsif Functor.match?(match_args, pattern)
