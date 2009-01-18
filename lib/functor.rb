@@ -48,39 +48,45 @@ class Functor
         c0,c1,c2,c3 = (0..3).map { |i| functor_cache[i][name] ||= {} }
         cache_size, cache_base = functor_cache_size, functor_cache_base
         c1_thresh,c2_thresh,c3_thresh = cache_base.to_i, (cache_base ** 2).to_i, (cache_base ** 3).to_i
+        # Grab the current incarnation of The Method
         old = instance_method(name) if instance_methods.include?( name )           
         define_method( name, action )
+        # Grab the newly redefined version of The Method
         newest = instance_method(name)
+        
+        # Recursively redefine The Method using the newest and previous incarnations
         define_method( name ) do | *args |
           match_args = with_self ? [self] + args : args
           signature = match_args.hash
+          # chech caches in order of priority.  Inlined ugliness makes for speed
           if meth = c3[signature]
-            meth.first.bind(self).call(*args)
+            meth[0].bind(self).call(*args)
           elsif meth = c2[signature]
             # when c3 fills up, shift its contents down to c2, and so forth
             c0, c1, c2, c3 = c1, c2, c3, {} if cache_size && c3.size >= cache_size
-            count = meth[-1]
-            (c3[signature] = meth && c2.delete(signature)) if count > c3_thresh
+            # methods are cached as [ method, counter ]
+            c3[signature] = c2.delete(signature) if meth[-1] > c3_thresh
             meth[-1] += 1
-            meth.first.bind(self).call(*args)
+            meth[0].bind(self).call(*args)
           elsif meth = c1[signature]
             c0, c1, c2 = c1, c2, {} if cache_size && c2.size >= cache_size
-            count = meth[-1]
-            (c2[signature] = meth && c1.delete(signature)) if count > c2_thresh
+            c2[signature] = c1.delete(signature) if meth[-1] > c2_thresh
             meth[-1] += 1
-            meth.first.bind(self).call(*args)
+            meth[0].bind(self).call(*args)
           elsif meth = c0[signature]
             c0, c1 = c1, {} if cache_size && c1.size >= cache_size
-            count = meth[-1]
-            (c1[signature] = meth && c0.delete(signature)) if count > c1_thresh 
+            c1[signature] = c0.delete(signature) if meth[-1] > c1_thresh 
             meth[-1] += 1
-            meth.first.bind(self).call(*args)
+            meth[0].bind(self).call(*args)
+          # On cache miss, call the newest incarnation if we match the topmost pattern
           elsif Functor.match?(match_args, pattern)
             c0 = {} if cache_size && c0.size >= cache_size
             c0[signature] = [newest, 0]
             newest.bind(self).call(*args)
+          # or call the previous incarnation of The Method
           elsif old
             old.bind(self).call(*args)
+          # and if there are no older incarnations, whine about it
           else
             raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
           end
