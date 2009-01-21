@@ -26,6 +26,14 @@ class Functor
         _functor( name, true, *pattern, &action)
       end
       
+      def k.method_missing(name, *args)
+        if args.empty? && name.to_s =~ /^_/
+          lambda { true }
+        else
+          super
+        end
+      end
+      
       private
       
       def k._functor( name, with_self=false, *pattern, &action)
