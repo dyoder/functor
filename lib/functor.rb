@@ -4,6 +4,10 @@ require 'metaid'
 
 class Functor
   
+  class NoMatch < ArgumentError
+    
+  end
+  
   def self.cache_config(options={})
     (@cache_config ||= { :size => 10_000, :base => 10 }).merge!(options)
   end
@@ -81,7 +85,7 @@ class Functor
             old.bind(self).call(*args)
           # and if there are no older incarnations, whine about it
           else
-            raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
+            raise NoMatch.new( "No functor matches the given arguments for method :#{name}." )
           end
         end 
       end
