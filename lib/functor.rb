@@ -15,15 +15,13 @@ class Functor
   module Method
     
     def self.included( k )
-      
-      def k.functor_cache; @functor_cache ||= [{},{},{},{}]; end
-      
-      def k.f_cache_2
-        @f_cache_2 ||= Hash.new { |hash, key| hash[key] = [ {},{},{},{} ] }
+            
+      def k.functor_cache
+        @functor_cache ||= Hash.new { |hash, key| hash[key] = [ {},{},{},{} ] }
       end
       
       def k.functor_cache_config(options={})
-        (@functor_cache_config ||= Functor.cache_config).merge!(options)
+        @functor_cache_config = ( @functor_cache_config || Functor.cache_config ).merge(options)
       end
       
       def k.functor( name, *pattern, &action )
@@ -35,60 +33,49 @@ class Functor
       end
       
       def k.method_missing(name, *args)
-        if args.empty? && name.to_s =~ /^_/
-          lambda { true }
-        else
-          super
-        end
+        args.empty? && name.to_s =~ /^_/  ?  lambda { true}  :  super
       end
       
       private
       
       def k._functor( name, with_self=false, *pattern, &action)
         name = name.to_s
-        name_cache = f_cache_2[name]
+        mc = functor_cache[name]  # grab the cache tiers for The Method
         cache_size, cache_base = functor_cache_config[:size], functor_cache_config[:base]
+        c0_size, c1_size, c2_size, c3_size = cache_size * 4, cache_size * 3, cache_size * 2, cache_size
         c1_thresh,c2_thresh,c3_thresh = cache_base.to_i, (cache_base ** 2).to_i, (cache_base ** 3).to_i
-        # Grab the current incarnation of The Method
-        old = instance_method(name) if instance_methods.include?( name )           
-        define_method( name, action )
-        # Grab the newly redefined version of The Method
-        newest = instance_method(name)
+        old_method = instance_method(name) if instance_methods.include?( name ) # grab The Method's current incarnation        
+        define_method( name, action ) # redefine The Method
+        newest = instance_method(name) # grab newly redefined The Method
         
         # Recursively redefine The Method using the newest and previous incarnations
         define_method( name ) do | *args |
           match_args = with_self ? [self] + args : args
-          signature = match_args.hash
-          # check caches in order of priority.  Inlined ugliness makes for speed
-          if meth = name_cache[3][signature]
+          sig = match_args.hash
+          if meth = mc[3][sig]  # check caches from top down
             meth[0].bind(self).call(*args)
-          elsif meth = name_cache[2][signature]
-            # when c3 fills up, shift its contents down to c2, and so forth
-            (name_cache[0], name_cache[1], name_cache[2], name_cache[3] = name_cache[1], name_cache[2], name_cache[3], {})  if name_cache[3].size >= cache_size
-            # methods are cached as [ method, counter ]
-            name_cache[3][signature] = name_cache[2].delete(signature) if meth[-1] > c3_thresh
-            meth[-1] += 1
+          elsif meth = mc[2][sig]
+            meth[1] += 1  # increment hit count
+            mc[3][sig] = mc[2].delete(sig) if meth[1] > c3_thresh # promote sig if it has enough hits
+            (mc[0], mc[1], mc[2], mc[3] = mc[1], mc[2], mc[3], {}) if mc[3].size >= c3_size # cascade if c3 is full
             meth[0].bind(self).call(*args)
-          elsif meth = name_cache[1][signature]
-            name_cache[0], name_cache[1], name_cache[2] = name_cache[1], name_cache[2], {} if name_cache[2].size >= cache_size * 2
-            name_cache[2][signature] = name_cache[1].delete(signature) if meth[-1] > c2_thresh
-            meth[-1] += 1
+          elsif meth = mc[1][sig]
+            meth[1] += 1
+            mc[2][sig] = mc[1].delete(sig) if meth[1] > c2_thresh
+            mc[0], mc[1], mc[2] = mc[1], mc[2], {} if mc[2].size >= c2_size
             meth[0].bind(self).call(*args)
-          elsif meth = name_cache[0][signature]
-            name_cache[0], name_cache[1] = name_cache[1], {} if name_cache[1].size >= cache_size * 4
-            name_cache[1][signature] = name_cache[0].delete(signature) if meth[-1] > c1_thresh 
-            meth[-1] += 1
+          elsif meth = mc[0][sig]
+            meth[1] += 1
+            mc[1][sig] = mc[0].delete(sig) if meth[1] > c1_thresh 
+            mc[0], mc[1] = mc[1], {} if mc[1].size >= c1_size
             meth[0].bind(self).call(*args)
-          # On cache miss, call the newest incarnation if we match the topmost pattern
-          elsif Functor.match?(match_args, pattern)
-            name_cache[0] = {} if name_cache[0].size >= cache_size * 8
-            name_cache[0][signature] = [newest, 0]
+          elsif Functor.match?(match_args, pattern) # not cached?  Try newest meth/pat.
+            (mc[0], mc[1], mc[2], mc[3] = mc[1], mc[2], mc[3], {})  if mc[3].size >= c3_size
+            mc[3][sig] = [newest, 0]  # methods are cached as [ method, counter ]
             newest.bind(self).call(*args)
-          # or call the previous incarnation of The Method
-          elsif old
-            old.bind(self).call(*args)
-          # and if there are no older incarnations, whine about it
-          else
+          elsif old_method  # or call the previous incarnation of The Method
+            old_method.bind(self).call(*args)
+          else  # and if there are no older incarnations, whine about it
             raise NoMatch.new( "No functor matches the given arguments for method :#{name}." )
           end
         end 
@@ -133,8 +120,8 @@ class Functor
   def to_proc ; lambda { |*args| self.call( *args ) } ; end
     
   def self.match?( args, pattern )
-    args.all? do |a|
-      p = pattern[args.index(a)]; p === a || ( p.respond_to?(:call) && p.call(a))
+    args.all? do |arg|
+      pat = pattern[args.index(arg)]; pat === arg || ( pat.respond_to?(:call) && pat.call(arg))
     end if args.length == pattern.length
   end
     
