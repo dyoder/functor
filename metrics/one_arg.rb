@@ -2,7 +2,7 @@ require "#{here = File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
-  functor_cache_config :size => 700, :base => 5
+  functor_cache_config :size => 700, :base => 6
   
   functor( :foo, Integer ) { |x| :integer }
   functor( :foo, String )  { |x| :string }
@@ -58,4 +58,4 @@ OneArg.new "native method" do
   end
 end
 
-OneArg.compare_instances( 4, 128)
+OneArg.compare_instances( 4, 64)
