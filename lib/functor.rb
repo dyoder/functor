@@ -6,7 +6,7 @@ class Functor
   class NoMatch < ArgumentError; end
   
   def self.cache_config(options={})
-    (@cache_config ||= { :size => 10_000, :base => 10 }).merge!(options)
+    (@cache_config ||= { :size => 4_096, :base => 8 }).merge!(options)
   end
   
   module Method
