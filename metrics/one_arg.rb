@@ -45,7 +45,7 @@ OneArg.new "functor method" do
   end
   
   after_sample do
-    puts A.f_cache_2["foo"].map{ |c| c.size }.inspect
+    puts A.functor_cache["foo"].map{ |c| c.size }.inspect
   end
 end
 
@@ -58,4 +58,4 @@ OneArg.new "native method" do
   end
 end
 
-OneArg.compare_instances( 4, 64)
+OneArg.compare_instances( 4, 96)
