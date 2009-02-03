@@ -88,36 +88,19 @@ class Functor
   
   # When creating a functor instance, use given within the block to add actions
   def initialize( &block )
+    class << self; include Functor::Method; end
     yield( self ) if block_given?
   end
   
   def given( *pattern, &action )
-    name = "call"
-    old = method(name) if methods.include?( name )
-    class << self; self; end.instance_eval do
-      define_method( name, action )
-    end
-    newest = method(name)
-    class << self; self; end.instance_eval do
-      
-      define_method( name ) do | *args |
-        if Functor.match?(args, pattern)
-          newest.call(*args)
-        elsif old
-          old.call(*args)
-        else
-          raise ArgumentError.new( "No functor matches the given arguments for method :#{name}." )
-        end
-      end
-      
-    end
+    class << self; self; end._functor( "call", false, *pattern, &action)
   end
   
   def []( *args, &block )
     call( *args, &block )
   end
   
-  def to_proc ; lambda { |*args| self.call( *args ) } ; end
+  def to_proc ; lambda { |*args| call( *args ) } ; end
     
   def self.match?( args, pattern )
     args.all? do |arg|
