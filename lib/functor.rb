@@ -1,12 +1,9 @@
 require "#{File.dirname(__FILE__)}/object"
 require 'rubygems'
-require 'metaid'
 
 class Functor
   
-  class NoMatch < ArgumentError
-    
-  end
+  class NoMatch < ArgumentError; end
   
   def self.cache_config(options={})
     (@cache_config ||= { :size => 10_000, :base => 10 }).merge!(options)
@@ -32,6 +29,7 @@ class Functor
         _functor( name, true, *pattern, &action)
       end
       
+      # undefined methods beginning with '_' can be used as wildcards in Functor patterns
       def k.method_missing(name, *args)
         args.empty? && name.to_s =~ /^_/  ?  lambda { true}  :  super
       end
@@ -84,27 +82,23 @@ class Functor
     end
   end
   
-  # Stuff for using standalone instances of Functor
-  
-  # When creating a functor instance, use given within the block to add actions
   def initialize( &block )
     class << self; include Functor::Method; end
     yield( self ) if block_given?
   end
   
   def given( *pattern, &action )
-    class << self; self; end._functor( "call", false, *pattern, &action)
+    (class << self; self; end)._functor( "call", false, *pattern, &action)
   end
   
-  def []( *args, &block )
-    call( *args, &block )
-  end
+  def []( *args, &block ); call( *args, &block ); end
   
   def to_proc ; lambda { |*args| call( *args ) } ; end
     
   def self.match?( args, pattern )
     args.all? do |arg|
-      pat = pattern[args.index(arg)]; pat === arg || ( pat.respond_to?(:call) && pat.call(arg))
+      pat = pattern[args.index(arg)]
+      pat === arg || ( pat.respond_to?(:call) && pat.call(arg))
     end if args.length == pattern.length
   end
     
