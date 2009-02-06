@@ -42,7 +42,7 @@ class Functor
         cache_size, cache_base = functor_cache_config[:size], functor_cache_config[:base]
         c0_size, c1_size, c2_size, c3_size = cache_size * 4, cache_size * 3, cache_size * 2, cache_size
         c1_thresh,c2_thresh,c3_thresh = cache_base.to_i, (cache_base ** 2).to_i, (cache_base ** 3).to_i
-        old_method = instance_method(name) if instance_methods.include?( name ) # grab The Method's current incarnation        
+        old_method = instance_method(name) if method_defined?( name ) # grab The Method's current incarnation        
         define_method( name, action ) # redefine The Method
         newest = instance_method(name) # grab newly redefined The Method
         
