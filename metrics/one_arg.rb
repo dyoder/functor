@@ -2,6 +2,8 @@ require "#{here = File.dirname(__FILE__)}/helpers"
 
 class A
   include Functor::Method
+  functor_cache_config :size => 700, :base => 6
+  
   functor( :foo, Integer ) { |x| :integer }
   functor( :foo, String )  { |x| :string }
   functor( :foo, Float )   { |x| :float }
@@ -24,30 +26,36 @@ class Native
 end
 
 class OneArg < Steve
-  
-end
-
-OneArg.new "native method" do
   before do
-    @n = Native.new
-  end
-  measure do
-    200.times do
-      [ 1, 2, 3, 1.0, 2.0, 3.0, "1", "2", "3", :uno, :dos, :tres, "one"].each { |item| @n.foo item }
-    end
+    nums = (1..200).to_a
+    alphas = ("a".."gr").to_a
+    @args_set = nums + nums.map { |i| i.to_f } + alphas + alphas.map { |i| i.to_sym } + Array.new(200, "one")
+    @args = []
+    srand(46)
+    9000.times { @args << @args_set[rand(@args_set.size)] }
   end
 end
 
 OneArg.new "functor method" do
-  before do
-    @a = A.new
+  before_sample do
+    @a = A.new    
   end
   measure do
-    200.times do
-      [ 1, 2, 1.0, 2.0, "1", "2", :uno, :dos, "one"].each { |item| @a.foo item }
-    end
+    @args.each { |item| @a.foo item }
+  end
+  
+  after_sample do
+    puts A.functor_cache["foo"].map{ |c| c.size }.inspect
   end
 end
 
+OneArg.new "native method" do
+  before_sample do
+    @n = Native.new
+  end
+  measure do
+    @args.each { |item| @n.foo item }
+  end
+end
 
-OneArg.compare_instances( 16, 32)
+OneArg.compare_instances( 4, 96)

@@ -68,4 +68,4 @@ ManyArgs.new "functor method" do
   end
 end
 
-ManyArgs.compare_instances( 16, 32)
+ManyArgs.compare_instances( 4, 64)
