@@ -31,7 +31,7 @@ class Functor
       
       # undefined methods beginning with '_' can be used as wildcards in Functor patterns
       def k.method_missing(name, *args)
-        args.empty? && name.to_s =~ /^_/  ?  lambda { true}  :  super
+        args.empty? && name.to_s =~ /^_/  ?  lambda { |args| true }  :  super
       end
       
       private

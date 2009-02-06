@@ -9,7 +9,7 @@ end
 
 class Child < Parent
   functor( :foo, String ) { |s| [ Child, String ] }
-  functor( :foo, Float ) { |x| super.reverse }
+  functor( :foo, Float ) { |x| super(x).reverse }
 end
 
 describe "Functor methods should support inheritance" do

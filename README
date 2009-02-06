@@ -23,8 +23,8 @@ You can also define Functor objects directly:
 
   fib ||= Functor.new do |f|
     f.given( Integer ) { | n | f.call( n - 1 ) + f.call( n - 2 ) }
-    f.given( 0 ) { 0 }
-    f.given( 1 ) { 1 }
+    f.given( 0 ) { |x| 0 }
+    f.given( 1 ) { |x| 1 }
   end
   
 You can use functors directly with functions taking a block like this:
@@ -40,8 +40,8 @@ You can call a functor as a method using #call:
 Arguments are matched first using #===, so anything that supports these methods can be matched against. In addition, you may pass as a "guard" any object that responds to #call and which takes an object (the argument) and return true or false. This allows you to do things like this:
 
   stripe ||= Functor.new do
-    given( lambda { |x| x % 2 == 0 } ) { 'white' }
-    given( lambda { |x| x % 2 == 1 } ) { 'silver' }
+    given( lambda { |x| x % 2 == 0 } ) { |x| 'white' }
+    given( lambda { |x| x % 2 == 1 } ) { |x| 'silver' }
   end
   
   stripe.call( 3 ) # => 'silver'

@@ -4,8 +4,8 @@ describe "Dispatch should support guards" do
   
   before do
     @stripe = Functor.new do |f|
-      f.given( lambda { |x| x % 2 == 1 } ) { 'silver' }
-      f.given( lambda { |x| x % 2 == 0 } ) { 'white' }
+      f.given( lambda { |x| x % 2 == 1 } ) { |x| 'silver' }
+      f.given( lambda { |x| x % 2 == 0 } ) { |x| 'white' }
     end
 
     @safe_divide = Functor.new do |f|
