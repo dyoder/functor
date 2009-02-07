@@ -1,5 +1,3 @@
-require "#{File.dirname(__FILE__)}/object"
-
 class Functor
   
   class NoMatch < ArgumentError; end
